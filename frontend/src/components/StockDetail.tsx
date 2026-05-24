@@ -32,7 +32,7 @@ export default function StockDetail({ ticker, onBack }: Props) {
   })
 
   if (isLoading) return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
       <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-slate-200 mb-6 transition-colors">
         <ArrowLeft size={18} /> Back to Dashboard
       </button>
@@ -44,7 +44,7 @@ export default function StockDetail({ ticker, onBack }: Props) {
   )
 
   if (isError || !s) return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
       <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-slate-200 mb-6 transition-colors">
         <ArrowLeft size={18} /> Back
       </button>
@@ -66,7 +66,7 @@ export default function StockDetail({ ticker, onBack }: Props) {
   })()
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
       {/* Back */}
       <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-slate-200 mb-5 transition-colors text-sm">
         <ArrowLeft size={16} /> Back to Dashboard
@@ -108,7 +108,7 @@ export default function StockDetail({ ticker, onBack }: Props) {
         </div>
 
         {/* Score strip */}
-        <div className="grid grid-cols-3 gap-4 mt-5 pt-4 border-t border-slate-700/40">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-5 pt-4 border-t border-slate-700/40">
           <div>
             <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Technical Score</p>
             <ScoreBar score={s.technical_score} />

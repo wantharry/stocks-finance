@@ -98,10 +98,92 @@ export default function StockTable({ filters, onSelectTicker }: Props) {
     </div>
   )
 
+  // ── Pagination bar (shared) ──────────────────────────────────────────
+  const PaginationBar = () => (
+    <div className="flex items-center justify-between px-4 py-3 border-t border-slate-700/50 text-sm text-slate-400">
+      <span>{total.toLocaleString()} stocks</span>
+      <div className="flex items-center gap-2">
+        <button
+          disabled={page <= 1}
+          onClick={() => setPage((p) => p - 1)}
+          className="p-1 rounded hover:bg-bg-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <span className="text-slate-300 text-xs">
+          {page} / {totalPages || 1}
+        </span>
+        <button
+          disabled={page >= totalPages}
+          onClick={() => setPage((p) => p + 1)}
+          className="p-1 rounded hover:bg-bg-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+    </div>
+  )
+
   return (
     <div className="bg-bg-card rounded-xl border border-slate-700/50 overflow-hidden">
-      {/* Table */}
-      <div className="overflow-x-auto">
+
+      {/* ── MOBILE CARD LIST (hidden on md+) ── */}
+      <div className="md:hidden">
+        {isLoading && rows.length === 0 ? (
+          <div className="divide-y divide-slate-700/30">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="p-4 flex items-center gap-3 animate-pulse">
+                <div className="h-5 w-14 bg-slate-700/50 rounded" />
+                <div className="flex-1 h-4 bg-slate-700/50 rounded" />
+                <div className="h-5 w-16 bg-slate-700/50 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : rows.length === 0 ? (
+          <p className="text-center py-10 text-slate-500 text-sm">No stocks match your filters.</p>
+        ) : (
+          <div className="divide-y divide-slate-700/30">
+            {rows.map((s) => {
+              const mc = macdStatus(s)
+              return (
+                <button
+                  key={s.ticker}
+                  onClick={() => onSelectTicker(s.ticker)}
+                  className="w-full text-left px-4 py-3.5 hover:bg-bg-hover active:bg-bg-hover transition-colors flex items-center gap-3"
+                >
+                  {/* Ticker + name */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-bold text-accent-blue text-sm">{s.ticker}</span>
+                      <RecBadge rec={s.recommendation} />
+                    </div>
+                    <p className="text-xs text-slate-400 truncate">{s.name ?? '—'}</p>
+                  </div>
+
+                  {/* Price + change */}
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-mono text-slate-200">{fmtCurrency(s.current_price)}</p>
+                    <p className={clsx('text-xs font-mono', changeColor(s.price_change_pct))}>
+                      {fmtPct(s.price_change_pct)}
+                    </p>
+                  </div>
+
+                  {/* Score bar */}
+                  <div className="w-16 shrink-0">
+                    <ScoreBar score={s.overall_score} />
+                  </div>
+
+                  <ChevronRight size={14} className="text-slate-600 shrink-0" />
+                </button>
+              )
+            })}
+          </div>
+        )}
+        <PaginationBar />
+      </div>
+
+      {/* ── DESKTOP TABLE (hidden on mobile) ── */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-bg-primary border-b border-slate-700/50">
             <tr>
@@ -206,31 +288,9 @@ export default function StockTable({ filters, onSelectTicker }: Props) {
             )}
           </tbody>
         </table>
+        <PaginationBar />
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between px-4 py-3 border-t border-slate-700/50 text-sm text-slate-400">
-        <span>{total.toLocaleString()} stocks</span>
-        <div className="flex items-center gap-2">
-          <button
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-            className="p-1 rounded hover:bg-bg-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <span className="text-slate-300">
-            Page {page} / {totalPages || 1}
-          </span>
-          <button
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
-            className="p-1 rounded hover:bg-bg-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
-      </div>
     </div>
   )
 }

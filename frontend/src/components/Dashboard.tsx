@@ -43,27 +43,27 @@ export default function Dashboard({ onSelectTicker, refreshStatus }: Props) {
     : null
 
   return (
-    <div className="max-w-[1600px] mx-auto px-4 py-5">
+    <div className="max-w-[1600px] mx-auto px-3 sm:px-4 py-4 sm:py-5">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
-          <BarChart2 size={28} className="text-accent-blue" />
+          <BarChart2 size={24} className="text-accent-blue shrink-0" />
           <div>
-            <h1 className="text-2xl font-bold text-white">StockIQ</h1>
-            <p className="text-xs text-slate-500">Market Analysis Platform · Data via Yahoo Finance (free)</p>
+            <h1 className="text-xl font-bold text-white">StockIQ</h1>
+            <p className="text-xs text-slate-500">Market Analysis · Yahoo Finance (free)</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {lastUpdated && !isRunning && (
-            <span className="text-xs text-slate-500">Updated {lastUpdated}</span>
+            <span className="text-xs text-slate-500 hidden sm:inline">Updated {lastUpdated}</span>
           )}
           <button
             onClick={handleRefresh}
             disabled={refreshing || isRunning}
-            className="flex items-center gap-2 px-4 py-2 bg-bg-card border border-slate-700 rounded-lg text-sm text-slate-300 hover:bg-bg-hover hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-3 py-2 bg-bg-card border border-slate-700 rounded-lg text-sm text-slate-300 hover:bg-bg-hover hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RefreshCw size={15} className={isRunning || refreshing ? 'animate-spin' : ''} />
-            {isRunning ? 'Refreshing…' : 'Refresh Data'}
+            <span className="hidden sm:inline">{isRunning ? 'Refreshing…' : 'Refresh Data'}</span>
           </button>
         </div>
       </div>
