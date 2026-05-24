@@ -8,6 +8,7 @@ Tables:
   refresh_status  – tracks background refresh progress
 """
 import logging
+import os
 from datetime import datetime, timezone
 
 from sqlalchemy import (
@@ -18,7 +19,8 @@ from sqlalchemy.engine import Engine
 
 logger = logging.getLogger(__name__)
 
-DB_URL = "sqlite:///./stockiq.db"
+_db_path = os.environ.get("DB_PATH", "./stockiq.db")
+DB_URL = f"sqlite:///{_db_path}"
 
 engine: Engine = create_engine(DB_URL, connect_args={"check_same_thread": False})
 metadata = MetaData()
