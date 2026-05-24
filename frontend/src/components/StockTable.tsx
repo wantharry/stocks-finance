@@ -129,6 +129,38 @@ export default function StockTable({ filters, onSelectTicker }: Props) {
 
       {/* ── MOBILE CARD LIST (hidden on md+) ── */}
       <div className="md:hidden">
+        {/* Quick sort pills */}
+        <div className="flex gap-1.5 overflow-x-auto px-3 py-2.5 border-b border-slate-700/50 scrollbar-hide">
+          {[
+            { label: 'Score',    key: 'overall_score' },
+            { label: 'Tech',     key: 'technical_score' },
+            { label: 'Price',    key: 'current_price' },
+            { label: 'Change%',  key: 'price_change_pct' },
+            { label: 'Mkt Cap',  key: 'market_cap' },
+            { label: 'RSI',      key: 'rsi' },
+            { label: 'P/E',      key: 'pe_ratio' },
+            { label: 'Volume',   key: 'volume' },
+          ].map(({ label, key }) => {
+            const active = sortBy === key
+            return (
+              <button
+                key={key}
+                onClick={() => handleSort(key)}
+                className={clsx(
+                  'shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors',
+                  active
+                    ? 'bg-accent-blue text-white'
+                    : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                )}
+              >
+                {label}
+                {active && (sortDir === 'desc'
+                  ? <ChevronDown size={11} />
+                  : <ChevronUp size={11} />)}
+              </button>
+            )
+          })}
+        </div>
         {isLoading && rows.length === 0 ? (
           <div className="divide-y divide-slate-700/30">
             {Array.from({ length: 8 }).map((_, i) => (
