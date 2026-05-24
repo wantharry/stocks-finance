@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, ChevronsUpDown, LayoutList, Table2 } from 'lucide-react'
 import { fetchStocks } from '../api/client'
 import type { Filters } from './FilterBar'
 import {
@@ -39,6 +39,7 @@ export default function StockTable({ filters, onSelectTicker }: Props) {
   const [page, setPage] = useState(1)
   const [sortBy, setSortBy] = useState('overall_score')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
+  const [mobileView, setMobileView] = useState<'cards' | 'table'>('cards')
 
   const handleSort = (key: string | null) => {
     if (!key) return
@@ -127,8 +128,40 @@ export default function StockTable({ filters, onSelectTicker }: Props) {
   return (
     <div className="bg-bg-card rounded-xl border border-slate-700/50 overflow-hidden">
 
-      {/* ── MOBILE CARD LIST (hidden on md+) ── */}
+      {/* ── MOBILE SECTION (hidden on md+) ── */}
       <div className="md:hidden">
+
+        {/* Cards / Desktop View tab switcher */}
+        <div className="flex items-center justify-between px-3 py-2 border-b border-slate-700/50">
+          <div className="flex gap-1 bg-slate-800 rounded-lg p-0.5">
+            <button
+              onClick={() => setMobileView('cards')}
+              className={clsx(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
+                mobileView === 'cards'
+                  ? 'bg-bg-card text-white shadow'
+                  : 'text-slate-400 hover:text-slate-200'
+              )}
+            >
+              <LayoutList size={13} /> Cards
+            </button>
+            <button
+              onClick={() => setMobileView('table')}
+              className={clsx(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
+                mobileView === 'table'
+                  ? 'bg-bg-card text-white shadow'
+                  : 'text-slate-400 hover:text-slate-200'
+              )}
+            >
+              <Table2 size={13} /> Desktop View
+            </button>
+          </div>
+          <span className="text-xs text-slate-500">{total.toLocaleString()} stocks</span>
+        </div>
+
+        {/* ── CARDS VIEW ── */}
+        {mobileView === 'cards' && (<>
         {/* Quick sort pills */}
         <div className="flex gap-1.5 overflow-x-auto px-3 py-2.5 border-b border-slate-700/50 scrollbar-hide">
           {[
@@ -212,9 +245,88 @@ export default function StockTable({ filters, onSelectTicker }: Props) {
           </div>
         )}
         <PaginationBar />
-      </div>
+        </>)}
 
-      {/* ── DESKTOP TABLE (hidden on mobile) ── */}
+        {/* ── DESKTOP TABLE VIEW (inside mobile, horizontally scrollable) ── */}
+        {mobileView === 'table' && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-bg-primary border-b border-slate-700/50">
+                <tr>
+                  {COLUMNS.map((col) => (
+                    <th
+                      key={col.label}
+                      onClick={() => handleSort(col.key)}
+                      className={clsx(
+                        'text-left px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wider whitespace-nowrap select-none',
+                        col.key ? 'cursor-pointer hover:text-slate-200 transition-colors' : '',
+                        col.key === sortBy ? 'text-accent-blue' : '',
+                      )}
+                    >
+                      <span className="inline-flex items-center">
+                        {col.label}
+                        <SortIcon colKey={col.key} />
+                      </span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-700/30">
+                {isLoading && rows.length === 0 ? (
+                  Array.from({ length: 8 }).map((_, i) => (
+                    <tr key={i}>
+                      {Array.from({ length: 14 }).map((_, j) => (
+                        <td key={j} className="px-4 py-3">
+                          <div className="h-4 bg-slate-700/50 rounded animate-pulse" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={14} className="text-center py-10 text-slate-500 text-sm">
+                      No stocks match your filters.
+                    </td>
+                  </tr>
+                ) : (
+                  rows.map((s) => {
+                    const ma = maStatus(s)
+                    const mc = macdStatus(s)
+                    return (
+                      <tr
+                        key={s.ticker}
+                        className="hover:bg-bg-hover active:bg-bg-hover cursor-pointer transition-colors group"
+                        onClick={() => onSelectTicker(s.ticker)}
+                      >
+                        <td className="px-4 py-3 font-bold text-accent-blue group-hover:text-blue-300 whitespace-nowrap">{s.ticker}</td>
+                        <td className="px-4 py-3 text-slate-300 max-w-[150px] truncate">{s.name ?? '—'}</td>
+                        <td className="px-4 py-3 text-slate-400 whitespace-nowrap text-xs">{s.sector ?? '—'}</td>
+                        <td className="px-4 py-3 font-mono text-slate-200 whitespace-nowrap">{fmtCurrency(s.current_price)}</td>
+                        <td className={clsx('px-4 py-3 font-mono whitespace-nowrap', changeColor(s.price_change_pct))}>{fmtPct(s.price_change_pct)}</td>
+                        <td className="px-4 py-3 text-slate-400 whitespace-nowrap">{fmtVolume(s.volume)}</td>
+                        <td className="px-4 py-3 text-slate-400 whitespace-nowrap">{fmtMarketCap(s.market_cap)}</td>
+                        <td className="px-4 py-3"><RsiIndicator rsi={s.rsi} /></td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {mc ? <span className={clsx('text-xs font-medium', mc.color)}>{mc.label}</span> : <span className="text-slate-500">—</span>}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {ma ? <span className={clsx('text-xs font-medium', ma.color)}>{ma.label}</span> : <span className="text-slate-500">—</span>}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-slate-300 whitespace-nowrap">{s.pe_ratio != null ? s.pe_ratio.toFixed(1) : '—'}</td>
+                        <td className="px-4 py-3 w-28"><ScoreBar score={s.technical_score} /></td>
+                        <td className="px-4 py-3 w-28"><ScoreBar score={s.overall_score} /></td>
+                        <td className="px-4 py-3 whitespace-nowrap"><RecBadge rec={s.recommendation} /></td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+            <PaginationBar />
+          </div>
+        )}
+
+      </div>{/* end mobile section */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-bg-primary border-b border-slate-700/50">
